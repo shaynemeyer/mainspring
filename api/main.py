@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException, Request, status
 from pydantic import BaseModel
 
 from billing.cost_tracker import CostTracker, load_prices
-from orchestrator.core import AgentOrchestrator
+from orchestrator.core import AgentOrchestrator, LLMServiceError
 
 # --- Configuration ---
 LLM_API_KEY = os.environ["OPENAI_API_KEY"]
@@ -91,6 +91,12 @@ async def query_agent(request: AgentRequest, http_request: Request):
             duration_ms=duration_ms,
             trace_id=trace_id,
         )
+    except LLMServiceError as e:
+        logger.error(f"[{trace_id}] LLM service failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Upstream LLM service error",
+        ) from e
     except Exception as e:
         logger.exception(
             f"[{trace_id}] An unexpected error occurred during query processing."

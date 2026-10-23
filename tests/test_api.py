@@ -35,11 +35,27 @@ def test_generated_trace_ids_are_unique(client, fake_llm):
     assert first != second
 
 
-def test_upstream_error_returns_generic_500(client, fake_llm):
+def test_upstream_connect_error_returns_generic_502(client, fake_llm):
     def fail(request):
         raise httpx2.ConnectError("dns fail for internal-host:8443", request=request)
 
     fake_llm(fail)
+    r = client.post("/agent/query", json={"query": "x"})
+    assert r.status_code == 502
+    assert r.json() == {"detail": "Upstream LLM service error"}
+
+
+def test_upstream_status_error_returns_502(client, fake_llm):
+    fake_llm(lambda r: httpx2.Response(401, json={"error": "bad key"}))
+    r = client.post("/agent/query", json={"query": "x"})
+    assert r.status_code == 502
+
+
+def test_internal_error_returns_generic_500(client, orchestrator, monkeypatch):
+    async def broken(*args):
+        raise RuntimeError("bug at /srv/secret/path")
+
+    monkeypatch.setattr(orchestrator, "process_query", broken)
     r = client.post("/agent/query", json={"query": "x"})
     assert r.status_code == 500
     assert r.json() == {"detail": "Internal server error"}
