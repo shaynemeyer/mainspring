@@ -1,9 +1,8 @@
-import subprocess
-import sys
-
 import httpx2
 import pytest
+from fastapi.testclient import TestClient
 
+from api.main import app
 from tests.conftest import OK_BODY
 
 
@@ -65,12 +64,22 @@ def test_missing_query_returns_422(client):
     assert client.post("/agent/query", json={}).status_code == 422
 
 
-def test_startup_fails_for_model_without_price():
-    result = subprocess.run(
-        [sys.executable, "-c", "import api.main"],
-        env={"OPENAI_API_KEY": "x", "LLM_MODEL": "gpt-typo"},
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode != 0
-    assert "LLM_MODEL 'gpt-typo' has no entry" in result.stderr
+def test_startup_fails_for_model_without_price(env):
+    env.setenv("LLM_MODEL", "gpt-typo")
+    with pytest.raises(RuntimeError, match="LLM_MODEL 'gpt-typo' has no entry"):
+        with TestClient(app):
+            pass
+
+
+def test_startup_fails_without_api_key(env):
+    env.delenv("OPENAI_API_KEY")
+    with pytest.raises(KeyError, match="OPENAI_API_KEY"):
+        with TestClient(app):
+            pass
+
+
+def test_shutdown_closes_http_client(env):
+    with TestClient(app) as test_client:
+        http_client = test_client.app.state.agent_orchestrator.http_client
+        assert not http_client.is_closed
+    assert http_client.is_closed

@@ -3,6 +3,7 @@ import logging
 import os
 import time
 import uuid
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request, status
 from pydantic import BaseModel
@@ -10,22 +11,43 @@ from pydantic import BaseModel
 from billing.cost_tracker import CostTracker, load_prices
 from orchestrator.core import AgentOrchestrator, LLMServiceError
 
-# --- Configuration ---
-LLM_API_KEY = os.environ["OPENAI_API_KEY"]
-LLM_ENDPOINT = os.getenv("LLM_ENDPOINT", "https://api.openai.com/v1/chat/completions")
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
-
 # --- Logging Setup --
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
+
+def build_orchestrator() -> AgentOrchestrator:
+    """Create the orchestrator from environment config, failing fast if invalid."""
+    model = os.getenv("LLM_MODEL", "gpt-4o-mini")
+    prices = load_prices()
+    if model not in prices:
+        raise RuntimeError(f"LLM_MODEL {model!r} has no entry in billing/prices.json")
+    return AgentOrchestrator(
+        llm_api_key=os.environ["OPENAI_API_KEY"],
+        llm_endpoint=os.getenv(
+            "LLM_ENDPOINT", "https://api.openai.com/v1/chat/completions"
+        ),
+        llm_model=model,
+        cost_tracker=CostTracker(prices),
+    )
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Build shared objects at startup and close the HTTP client at shutdown."""
+    app.state.agent_orchestrator = build_orchestrator()
+    yield
+    await app.state.agent_orchestrator.aclose()
+
+
 # --- FastAPI App Initialization ---
 app = FastAPI(
     title="Mainspring API",
     description="API gateway for Mainspring, an orchestration framework for agentic AI.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 
@@ -42,21 +64,6 @@ class AgentResponse(BaseModel):
     duration_ms: float
     trace_id: str
 
-
-# --- Global Cost Tracker ---
-prices = load_prices()
-if LLM_MODEL not in prices:
-    raise RuntimeError(f"LLM_MODEL {LLM_MODEL!r} has no entry in billing/prices.json")
-cost_tracker = CostTracker(prices)
-
-# --- Agent Orchestrator Initialization ---
-# This would typically be dependency injected or managed by a factory
-agent_orchestrator = AgentOrchestrator(
-    llm_api_key=LLM_API_KEY,
-    llm_endpoint=LLM_ENDPOINT,
-    llm_model=LLM_MODEL,
-    cost_tracker=cost_tracker,
-)
 
 
 # --- Health Check Endpoint ---
@@ -77,7 +84,8 @@ async def query_agent(request: AgentRequest, http_request: Request):
 
     try:
         # Orchestrate the agent's response
-        agent_response, total_cost = await agent_orchestrator.process_query(
+        orchestrator = http_request.app.state.agent_orchestrator
+        agent_response, total_cost = await orchestrator.process_query(
             request.query, request.user_id, request.session_id, trace_id
         )
         end_time = time.perf_counter()

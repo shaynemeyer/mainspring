@@ -45,6 +45,10 @@ class AgentOrchestrator:
             timeout=30.0
         )  # Global client with timeout
 
+    async def aclose(self) -> None:
+        """Close the HTTP client and its open connections."""
+        await self.http_client.aclose()
+
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_fixed(2),
