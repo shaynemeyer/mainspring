@@ -93,11 +93,7 @@ uv run pytest
 ## Installation
 
 ```bash
-# npm
-npm install @shaynemeyer/mainspring
-
-# PyPI
-pip install mainspring
+uv add mainspring
 ```
 
 > Packages will be published once the first preview release is ready.
