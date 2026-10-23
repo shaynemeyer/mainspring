@@ -3,6 +3,8 @@ name = "mainspring"
 version = "0.1.0"
 description = "A production-ready orchestration framework for agentic AI systems."
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.161.1",

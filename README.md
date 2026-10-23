@@ -49,14 +49,14 @@ flowchart TD
     Telemetry["Observability"] -. "traces" .- Orchestrator
 ```
 
-| Component | Responsibility |
-|---|---|
-| Orchestrator | Breaks goals into tasks, assigns them, and assembles results |
-| Agents | Carry out one focused kind of task each |
-| Tool registry | Registers tools and integrations, including MCP servers |
-| Model providers | Connect to the LLM backends of your choice |
-| Cost ledger | Tracks token usage and cost, and enforces budgets |
-| Observability | Emits structured logs, traces, and metrics |
+| Component       | Responsibility                                               |
+| --------------- | ------------------------------------------------------------ |
+| Orchestrator    | Breaks goals into tasks, assigns them, and assembles results |
+| Agents          | Carry out one focused kind of task each                      |
+| Tool registry   | Registers tools and integrations, including MCP servers      |
+| Model providers | Connect to the LLM backends of your choice                   |
+| Cost ledger     | Tracks token usage and cost, and enforces budgets            |
+| Observability   | Emits structured logs, traces, and metrics                   |
 
 ## Current state
 
@@ -124,13 +124,13 @@ A quick-start example will be added with the first preview release. It will show
 
 ## Contributing
 
-Contributions are welcome. Please open an issue to discuss significant changes before submitting a pull request.
+Mainspring is not accepting pull requests until the first preview release, while the core design settles. Issues, bug reports, and design feedback are welcome in the meantime.
 
-Contributions are accepted under the [Developer Certificate of Origin](https://developercertificate.org/). Sign off your commits with `git commit -s`.
+Once contributions open, they will be accepted under the [Developer Certificate of Origin](https://developercertificate.org/).
 
 ## License
 
-Mainspring is licensed under the [Apache License 2.0](LICENSE).
+Mainspring is licensed under the [Apache License 2.0](LICENSE). Redistributions must keep the [NOTICE](NOTICE) file.
 
 ## Author
 
