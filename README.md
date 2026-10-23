@@ -84,10 +84,16 @@ curl -X POST localhost:8000/agent/query \
 
 `LLM_MODEL` must have an entry in `billing/prices.json`, or the app will not start.
 
+To skip `--env-file` on every command, set [`UV_ENV_FILE`](https://docs.astral.sh/uv/reference/environment/#uv_env_file) in your shell profile so `uv run` loads `.env` automatically:
+
+```bash
+export UV_ENV_FILE=.env
+```
+
 Run the tests (no API key or network needed):
 
 ```bash
-uv run pytest
+UV_NO_ENV_FILE=1 uv run pytest   # or just `uv run pytest` if UV_ENV_FILE is unset
 ```
 
 ## Installation
