@@ -1,0 +1,22 @@
+[project]
+name = "mainspring"
+version = "0.1.0"
+description = "A production-ready orchestration framework for agentic AI systems."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.161.1",
+    "httpx2>=2.16.0",
+    "pydantic>=2.14.1",
+    "tenacity>=9.2.1",
+    "uvicorn>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

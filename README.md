@@ -58,6 +58,38 @@ flowchart TD
 | Cost ledger | Tracks token usage and cost, and enforces budgets |
 | Observability | Emits structured logs, traces, and metrics |
 
+## Current state
+
+The features above describe the target design. What exists today:
+
+- **API** (`api/main.py`): FastAPI app with `GET /health` and `POST /agent/query`
+- **Orchestrator** (`orchestrator/core.py`): a single LLM call per query over the OpenAI chat completions API, retrying only transient errors (timeouts, network errors, 429, 5xx)
+- **Cost tracking** (`billing/`): per-call cost from per-model prices in `billing/prices.json`; budgets are not enforced yet
+
+## Development
+
+Requires [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync
+cp .env.example .env   # add your OPENAI_API_KEY
+uv run --env-file .env uvicorn api.main:app --reload
+```
+
+```bash
+curl -X POST localhost:8000/agent/query \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "What is a mainspring?"}'
+```
+
+`LLM_MODEL` must have an entry in `billing/prices.json`, or the app will not start.
+
+Run the tests (no API key or network needed):
+
+```bash
+uv run pytest
+```
+
 ## Installation
 
 ```bash
