@@ -89,7 +89,8 @@ class AgentOrchestrator:
             output_tokens = response_data["usage"]["completion_tokens"]
 
             logger.info(
-                f"[{trace_id}] LLM call successful. Input tokens: {input_tokens}, Output tokens: {output_tokens}"
+                f"[{trace_id}] LLM call successful. Input tokens: {input_tokens}, "
+                f"Output tokens: {output_tokens}"
             )
 
             return content, input_tokens, output_tokens
@@ -105,14 +106,16 @@ class AgentOrchestrator:
         except httpx2.HTTPStatusError as e:
             status_code = e.response.status_code
             logger.error(
-                f"[{trace_id}] LLM API returned an error status {status_code}: {e.response.text}"
+                f"[{trace_id}] LLM API returned an error status {status_code}: "
+                f"{e.response.text}"
             )
             if _is_retryable_status(status_code):
                 raise LLMRetryableError(f"LLM API error: {status_code}") from e
             raise LLMServiceError(f"LLM API error: {status_code}") from e
         except KeyError as e:
             logger.error(
-                f"[{trace_id}] Unexpected LLM response format: {e}. Response: {response.text}"
+                f"[{trace_id}] Unexpected LLM response format: {e}. "
+                f"Response: {response.text}"
             )
             raise LLMServiceError("Unexpected LLM response format.") from e
 
@@ -124,7 +127,8 @@ class AgentOrchestrator:
 
         # Step 1: Initial planning/response generation
         system_prompt = (
-            "You are a helpful AI assistant. Respond concisely and directly to the user's query. "
+            "You are a helpful AI assistant. "
+            "Respond concisely and directly to the user's query. "
             "If you don't know the answer, state that you don't know. "
             "Your goal is to provide a single, direct answer or action. "
         )

@@ -30,6 +30,9 @@ class CostTracker:
         self.total_cost += cost
         logger.info(
             "LLM usage recorded: model=%s, input=%d, output=%d, cost=$%.6f",
-            model, input_tokens, output_tokens, cost,
+            model,
+            input_tokens,
+            output_tokens,
+            cost,
         )
         return cost

@@ -5,7 +5,9 @@ from billing.cost_tracker import CostTracker, load_prices
 
 def test_cost_uses_per_million_prices():
     tracker = CostTracker(load_prices())
-    assert tracker.record_llm_usage("gpt-4o-mini", 1_000_000, 1_000_000) == pytest.approx(0.75)
+    assert tracker.record_llm_usage(
+        "gpt-4o-mini", 1_000_000, 1_000_000
+    ) == pytest.approx(0.75)
 
 
 def test_total_cost_accumulates():

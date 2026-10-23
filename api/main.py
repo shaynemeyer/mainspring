@@ -45,7 +45,9 @@ async def lifespan(app: FastAPI):
 # --- FastAPI App Initialization ---
 app = FastAPI(
     title="Mainspring API",
-    description="API gateway for Mainspring, an orchestration framework for agentic AI.",
+    description=(
+        "API gateway for Mainspring, an orchestration framework for agentic AI."
+    ),
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -65,11 +67,10 @@ class AgentResponse(BaseModel):
     trace_id: str
 
 
-
 # --- Health Check Endpoint ---
 @app.get("/health", status_code=status.HTTP_200_OK)
 async def health_check():
-    return {"status": "healthy", "message": "Agentic AI System is operational"}
+    return {"status": "healthy", "message": "Mainspring is operational"}
 
 
 # --- Main Agent Endpoint ---
@@ -91,7 +92,8 @@ async def query_agent(request: AgentRequest, http_request: Request):
         end_time = time.perf_counter()
         duration_ms = (end_time - start_time) * 1000
         logger.info(
-            f"[{trace_id}] Query processed in {duration_ms:.2f}ms with total cost ${total_cost:.6f}"
+            f"[{trace_id}] Query processed in {duration_ms:.2f}ms "
+            f"with total cost ${total_cost:.6f}"
         )
         return AgentResponse(
             response=agent_response,
